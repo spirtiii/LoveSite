@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Для Ники ❤</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;600;700&family=Marck+Script&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<canvas id="bg-hearts"></canvas>
+<canvas id="fireworks"></canvas>
+
+<main id="app">
+
+  <section id="screen-intro" class="screen active">
+    <div class="heart-big">❤️</div>
+    <h1>Привет, Ника!</h1>
+    <p class="subtitle">Я приготовил для тебя маленькое приключение.<br>Пройди все уровни — и в самом конце тебя ждёт сюрприз 💌</p>
+    <button class="btn" data-action="next">Начать приключение 🚀</button>
+  </section>
+
+  <section id="screen-level1" class="screen">
+    <div class="level-badge">Уровень 1 из 4</div>
+    <h2>Собери сердечки</h2>
+    <p class="subtitle">Кликай по падающим сердечкам! Нужно поймать <b>10</b> за 20 секунд.</p>
+    <div class="hud"><span id="l1-score">❤️ 0 / 10</span><span id="l1-timer">⏳ 20</span></div>
+    <div id="l1-field" class="game-field"></div>
+    <p id="l1-msg" class="hidden"></p>
+    <button class="btn hidden" data-action="next">Дальше 💫</button>
+  </section>
+
+  <section id="screen-level2" class="screen">
+    <div class="level-badge">Уровень 2 из 4</div>
+    <h2>Найди пары</h2>
+    <p class="subtitle">Открой все карточки и найди одинаковые сердечки 💕</p>
+    <div id="l2-grid" class="memory-grid"></div>
+    <p id="l2-msg" class="hidden"></p>
+    <button class="btn hidden" data-action="next">Дальше 💫</button>
+  </section>
+
+  <section id="screen-level3" class="screen">
+    <div class="level-badge">Уровень 3 из 4</div>
+    <h2>Поймай комплименты</h2>
+    <p class="subtitle">Ловите только добрые слова! Нужно поймать <b>7</b> комплиментов.</p>
+    <div class="hud"><span id="l3-score">💬 0 / 7</span><span id="l3-misses">Мимо: 0/3</span></div>
+    <div id="l3-field" class="game-field"></div>
+    <p id="l3-msg" class="hidden"></p>
+    <button class="btn hidden" data-action="next">Дальше 💫</button>
+  </section>
+
+  <section id="screen-level4" class="screen">
+    <div class="level-badge">Уровень 4 из 4</div>
+    <h2>Последний вопрос...</h2>
+    <p class="subtitle" id="l4-question">Ты меня любишь? 😏</p>
+    <div class="l4-buttons">
+      <button class="btn" data-action="next">Да, конечно ❤️</button>
+      <button id="l4-runaway" class="btn btn-ghost">Хм...</button>
+    </div>
+    <p id="l4-msg" class="hidden"></p>
+  </section>
+
+  <section id="screen-finale" class="screen">
+    <h1 class="finale-title">Сюрприз для тебя 🎉</h1>
+    <p class="subtitle">Ты прошла все уровни! Ты невероятная 💖</p>
+    <div id="letter" class="letter closed" role="button" tabindex="0" aria-label="Открыть письмо">
+      <div class="envelope">
+        <div class="flap"></div>
+        <div class="pocket"></div>
+        <div class="letter-paper">
+          <div class="letter-content">
+            <h3>Моя любимая Ника 💌</h3>
+            <p>
+              Я не устаю говорить тебе это: я люблю тебя так сильно, что даже слова
+              «очень» и «бесконечно» кажутся маленькими. Каждый день с тобой — лучший
+              день, а каждый день без тебя — ожидание встречи.
+            </p>
+            <p>
+              Я очень скучаю по тебе. По твоей улыбке, по твоему голосу, по тому, как
+              ты смеёшься над моими глупыми шутками. Ты делаешь мой мир теплее и ярче.
+            </p>
+            <div class="counter-box">
+              <div class="counter-title">А ещё мы вместе уже</div>
+              <div id="together-counter" class="counter">156 дней</div>
+              <div id="together-counter-small" class="counter-small"></div>
+            </div>
+            <p class="sign">Твой, навсегда ❤️</p>
+          </div>
+        </div>
+      </div>
+      <p class="letter-hint">Нажми на конверт, чтобы открыть 💌</p>
+    </div>
+    <button class="btn hidden" id="btn-restart" data-action="restart">Пройти ещё раз 🔁</button>
+  </section>
+
+</main>
+
+<script src="script.js"></script>
+</body>
+</html>
