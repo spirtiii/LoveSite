@@ -64,33 +64,65 @@
   <section id="screen-finale" class="screen">
     <h1 class="finale-title">Сюрприз для тебя 🎉</h1>
     <p class="subtitle">Ты прошла все уровни! Ты невероятная 💖</p>
+
     <div id="letter" class="letter closed" role="button" tabindex="0" aria-label="Открыть письмо">
-      <div class="envelope">
-        <div class="flap"></div>
-        <div class="pocket"></div>
-        <div class="letter-paper">
-          <div class="letter-content">
-            <h3>Моя любимая Ника 💌</h3>
-            <p>
-              Я не устаю говорить тебе это: я люблю тебя так сильно, что даже слова
-              «очень» и «бесконечно» кажутся маленькими. Каждый день с тобой — лучший
-              день, а каждый день без тебя — ожидание встречи.
-            </p>
-            <p>
-              Я очень скучаю по тебе. По твоей улыбке, по твоему голосу, по тому, как
-              ты смеёшься над моими глупыми шутками. Ты делаешь мой мир теплее и ярче.
-            </p>
-            <div class="counter-box">
-              <div class="counter-title">А ещё мы вместе уже</div>
-              <div id="together-counter" class="counter">156 дней</div>
-              <div id="together-counter-small" class="counter-small"></div>
-            </div>
-            <p class="sign">Твой, навсегда ❤️</p>
-          </div>
+      <div class="envelope-wrap">
+        <div class="envelope">
+          <div class="flap"></div>
+          <div class="pocket"></div>
+        </div>
+        <p class="letter-hint">Нажми на конверт, чтобы открыть 💌</p>
+      </div>
+      <div class="letter-paper">
+        <div class="letter-content">
+          <h3>Моя любимая Ника 💌</h3>
+          <p>
+            Ну вот уже как мы пол года знакомы. И за эти пол года я понял что такое
+            любовь, что такое счастье и понял в чем смысл моей жизни. Я как встретил
+            тебя в свой первый день у меня горели глаза, потому что такую красивую
+            девушку я никогда не видел.
+          </p>
+          <p>
+            И вот уже как пол года пролетели с нашего первого дня знакомства, и я очень
+            рад что мы до сих пор вместе и сильно любим друг друга и понимаем. Извини
+            что пишу тебе так через сайт, но твоё письмо ещё пока не готово поэтому
+            пока что все так :))
+          </p>
+          <p>
+            Я люблю тебя сильно сильно, я тебя любил, люблю и буду любить дальше так
+            сильно, что словами не передать. И я скучаю сильно, так как тебя опять
+            рядом нет :((
+          </p>
         </div>
       </div>
-      <p class="letter-hint">Нажми на конверт, чтобы открыть 💌</p>
     </div>
+
+    <div id="contract" class="contract hidden">
+      <div class="scissors hidden" id="scissors">✂️</div>
+      <div class="contract-inner" id="contract-inner">
+        <div class="contract-title">💍 Контракт на любовь 🌹</div>
+        <div class="contract-days">Уже вместе <span id="contract-days">156 дней</span></div>
+        <div class="contract-sub" id="contract-sub"></div>
+        <div class="contract-signatures">
+          <div class="sig">
+            <div class="sig-name">Твой Витюша</div>
+            <svg class="sig-scribble" viewBox="0 0 120 30" aria-hidden="true">
+              <path d="M5 20 C 15 4, 24 28, 34 14 S 52 6, 62 20 S 88 26, 115 8" fill="none" stroke="#3a2a6b" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            <div class="sig-line"></div>
+            <div class="sig-label">подпись</div>
+          </div>
+          <div class="sig">
+            <input id="nika-signature" class="sig-input" maxlength="30" autocomplete="off" placeholder="...">
+            <div class="sig-line"></div>
+            <div class="sig-label">подпись Ники</div>
+          </div>
+        </div>
+        <button class="btn" id="btn-sign">Подписать 🖋</button>
+        <p id="sign-hint" class="hidden"></p>
+      </div>
+    </div>
+
     <button class="btn hidden" id="btn-restart" data-action="restart">Пройти ещё раз 🔁</button>
   </section>
 

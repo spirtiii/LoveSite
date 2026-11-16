@@ -245,6 +245,10 @@
     let tries = 0;
 
     runaway.addEventListener('mouseenter', dodge);
+    runaway.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      dodge();
+    }, { passive: false });
     runaway.addEventListener('click', dodge);
 
     function dodge() {
@@ -262,43 +266,133 @@
     }
   }
 
-  // ---------- Финал: салют + письмо + счётчик ----------
+  // ---------- Финал: салют + письмо + контракт + свадьба ----------
   const DAYS_TOGETHER = 156;
   const startDate = Date.now() - DAYS_TOGETHER * 24 * 60 * 60 * 1000;
-
-  function startFinale() {
-    launchFireworks(6000);
-    setTimeout(startCounter, 500);
-  }
+  let counterStarted = false;
 
   function startCounter() {
-    const big = $('#together-counter');
-    const small = $('#together-counter-small');
+    if (counterStarted) return;
+    counterStarted = true;
+    const daysEl = $('#contract-days');
+    const subEl = $('#contract-sub');
     function update() {
-      let ms = Date.now() - startDate;
+      const ms = Date.now() - startDate;
       const days = Math.floor(ms / 86400000);
       const hours = Math.floor(ms / 3600000) % 24;
       const minutes = Math.floor(ms / 60000) % 60;
       const seconds = Math.floor(ms / 1000) % 60;
-      big.textContent = `${days} дней`;
-      small.textContent = `${hours} ч ${minutes} мин ${seconds} сек — и это только начало ❤️`;
+      daysEl.textContent = `${days} дней`;
+      subEl.textContent = `${hours} ч ${minutes} мин ${seconds} сек — и это только начало ❤️`;
     }
     update();
     setInterval(update, 1000);
   }
 
+  function startFinale() {
+    launchFireworks(5000);
+  }
+
   const letter = $('#letter');
   letter.addEventListener('click', () => {
-    if (letter.classList.contains('closed')) {
-      letter.classList.remove('closed');
-      letter.classList.add('open');
-      launchFireworks(3500);
-      $('#btn-restart').classList.remove('hidden');
-    }
+    if (!letter.classList.contains('closed')) return;
+    letter.classList.remove('closed');
+    letter.classList.add('open');
+    launchFireworks(3000);
+    setTimeout(() => {
+      $('#contract').classList.remove('hidden');
+      startCounter();
+      $('#contract').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }, 1400);
   });
   letter.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' || e.key === ' ') letter.click();
   });
+
+  let signed = false;
+  function signContract() {
+    if (signed) return;
+    const input = $('#nika-signature');
+    const hint = $('#sign-hint');
+    if (!input.value.trim()) {
+      hint.textContent = 'Сначала подпиши, пожалуйста 🖋';
+      hint.classList.remove('hidden');
+      input.focus();
+      return;
+    }
+    signed = true;
+    hint.classList.add('hidden');
+    input.disabled = true;
+    $('#btn-sign').classList.add('hidden');
+
+    const contract = $('#contract');
+    const scissors = $('#scissors');
+    contract.classList.add('cutting');
+    scissors.classList.remove('hidden');
+    scissors.classList.add('cut');
+    setTimeout(() => {
+      contract.classList.remove('cutting');
+      contract.classList.add('hung');
+      startWedding();
+    }, 2400);
+  }
+  $('#btn-sign').addEventListener('click', signContract);
+  $('#nika-signature').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') signContract();
+  });
+
+  function startWedding() {
+    document.body.classList.add('wedding');
+    const decor = document.createElement('div');
+    decor.id = 'wedding-decor';
+    document.body.appendChild(decor);
+    const emojis = ['💍', '💐', '🤍', '🕊️', '🌹', '🥂'];
+    setInterval(() => {
+      const el = document.createElement('span');
+      el.className = 'wedding-emoji';
+      el.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+      el.style.left = `${rand(0, 95)}vw`;
+      el.style.animationDuration = `${rand(6, 12)}s`;
+      decor.appendChild(el);
+      setTimeout(() => el.remove(), 13000);
+    }, 700);
+    playWeddingMarch();
+    launchFireworks(9000);
+    $('#btn-restart').classList.remove('hidden');
+  }
+
+  let audioCtx = null;
+  function playWeddingMarch() {
+    try {
+      audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      const freq = { C4: 261.63, D4: 293.66, E4: 329.63, F4: 349.23, G4: 392, A4: 440, C5: 523.25 };
+      const phrase = [
+        ['C4', .5], ['F4', .25], ['F4', .25], ['F4', .5],
+        ['F4', .25], ['E4', .25], ['F4', .25], ['G4', .25],
+        ['F4', 1], ['A4', .5], ['G4', .5], ['F4', .5], ['E4', 1],
+        ['C4', .5], ['F4', .25], ['F4', .25], ['F4', .5],
+        ['F4', .25], ['E4', .25], ['F4', .25], ['G4', .25],
+        ['F4', 1], ['A4', .5], ['G4', .5], ['F4', .5], ['C4', 1.5],
+      ];
+      let t = audioCtx.currentTime + 0.1;
+      for (const [note, dur] of phrase) {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.value = freq[note];
+        gain.gain.setValueAtTime(0.0001, t);
+        gain.gain.exponentialRampToValueAtTime(0.25, t + 0.03);
+        gain.gain.exponentialRampToValueAtTime(0.0001, t + dur * 0.95);
+        osc.connect(gain).connect(audioCtx.destination);
+        osc.start(t);
+        osc.stop(t + dur);
+        t += dur;
+      }
+    } catch (err) {
+      return;
+    }
+  }
 
   const fw = $('#fireworks');
   const fwCtx = fw.getContext('2d');

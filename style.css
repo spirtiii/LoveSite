@@ -144,9 +144,9 @@ h2 { font-size: clamp(22px, 5vw, 32px); margin-bottom: 8px; }
 .memory-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 10px;
+  gap: 8px;
   width: 100%;
-  max-width: 440px;
+  max-width: 340px;
   margin-bottom: 14px;
 }
 .memory-card {
@@ -168,9 +168,9 @@ h2 { font-size: clamp(22px, 5vw, 32px); margin-bottom: 8px; }
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 14px;
+  border-radius: 12px;
   backface-visibility: hidden;
-  font-size: 30px;
+  font-size: 24px;
 }
 .memory-face.back {
   background: linear-gradient(135deg, var(--pink-dark), var(--bg2));
@@ -227,57 +227,154 @@ h2 { font-size: clamp(22px, 5vw, 32px); margin-bottom: 8px; }
   border-radius: 10px;
   z-index: 4;
   transform-origin: top;
-  transition: transform .7s cubic-bezier(.6, -.2, .3, 1.4), z-index 0s .35s;
+  transition: transform .7s cubic-bezier(.6, -.2, .3, 1.4), opacity .4s ease .5s;
   clip-path: polygon(0 0, 100% 0, 50% 62%);
   display: flex;
   align-items: center;
   justify-content: center;
 }
 .envelope .flap::after { content: '💌'; font-size: 34px; transform: translateY(6px); }
-.letter.open .envelope .flap { transform: rotateX(180deg); z-index: 1; }
+.letter.open .envelope .flap { transform: rotateX(180deg); opacity: 0; }
+.letter.open .envelope { animation: envelopeAway .8s ease .8s forwards; }
+@keyframes envelopeAway { to { opacity: 0; transform: scale(.6) translateY(-30px); } }
+.letter.open .envelope-wrap { pointer-events: none; }
+.letter.open .letter-hint { opacity: 0; transition: opacity .4s ease; }
+.letter.open { cursor: default; }
 
 .letter-paper {
-  position: absolute;
-  left: 50%;
-  top: 8px;
-  transform: translateX(-50%);
-  width: 92%;
+  width: min(560px, 94vw);
+  margin: -30px auto 0;
   background: #fff8fa;
   color: #5a2340;
   border-radius: 10px;
-  padding: 18px 18px 22px;
+  padding: 20px 22px 22px;
+  position: relative;
   z-index: 2;
   max-height: 0;
   opacity: 0;
   overflow: hidden;
-  transition: max-height 1s ease .3s, opacity .6s ease .5s, top .8s ease .3s;
+  transition: max-height 1.2s ease .6s, opacity .6s ease 1s, margin .8s ease 1s;
   box-shadow: 0 10px 30px rgba(0, 0, 0, .35);
 }
 .letter.open .letter-paper {
-  max-height: 2000px;
+  max-height: 2400px;
   opacity: 1;
-  top: -40px;
+  margin-top: 12px;
   overflow-y: auto;
 }
-.letter.open { cursor: default; }
-.letter.open .letter-hint { display: none; }
 
 .letter-content h3 { font-family: 'Marck Script', cursive; font-size: 26px; margin-bottom: 10px; }
 .letter-content p { font-size: 15px; line-height: 1.65; margin-bottom: 10px; text-align: left; }
-.letter-content .sign { font-family: 'Marck Script', cursive; font-size: 22px; text-align: right; margin-bottom: 0; }
 
-.counter-box {
-  background: rgba(224, 68, 124, .1);
-  border: 1px dashed var(--pink);
-  border-radius: 12px;
-  padding: 12px;
-  margin: 12px 0;
+.contract {
+  width: min(560px, 94vw);
+  margin: 26px auto 0;
+  position: relative;
+  animation: fadeIn .8s ease;
 }
-.counter-title { font-size: 14px; opacity: .8; }
-.counter { font-size: 30px; font-weight: 700; color: var(--pink-dark); margin: 4px 0; }
-.counter-small { font-size: 13px; opacity: .75; }
+.contract-inner {
+  background: linear-gradient(160deg, #fffaf0, #fff3e0);
+  color: #5a2340;
+  border: 3px double #c9a24b;
+  border-radius: 8px;
+  padding: 22px 20px 24px;
+  box-shadow: 0 14px 40px rgba(0, 0, 0, .35);
+  transition: transform .8s ease, box-shadow .8s ease;
+}
+.contract-title { font-family: 'Marck Script', cursive; font-size: 30px; text-align: center; color: #8a5a1a; }
+.contract-days { text-align: center; font-size: 22px; font-weight: 700; margin: 10px 0 4px; }
+.contract-sub { text-align: center; font-size: 13px; opacity: .75; min-height: 18px; }
+
+.contract-signatures {
+  display: flex;
+  gap: 24px;
+  justify-content: center;
+  margin-top: 18px;
+  flex-wrap: wrap;
+}
+.sig { text-align: center; width: 180px; }
+.sig-name { font-family: 'Marck Script', cursive; font-size: 24px; color: #3a2a6b; min-height: 32px; }
+.sig-scribble { width: 130px; height: 30px; }
+.sig-input {
+  font-family: 'Marck Script', cursive;
+  font-size: 22px;
+  border: none;
+  outline: none;
+  background: transparent;
+  text-align: center;
+  width: 100%;
+  color: #7a1f4b;
+  min-height: 32px;
+}
+.sig-input::placeholder { color: #c9a0b3; }
+.sig-line { border-bottom: 2px solid #8a5a1a; margin-top: 2px; }
+.sig-label { font-size: 12px; opacity: .7; margin-top: 4px; }
+
+#sign-hint { color: #c2185b; font-size: 14px; margin-top: 10px; }
+
+.scissors { position: absolute; top: -18px; left: -34px; font-size: 36px; z-index: 5; }
+.contract.cutting .contract-inner { outline: 2px dashed #b3556e; outline-offset: 6px; }
+.scissors.cut { animation: cutPath 2.4s ease-in-out forwards; }
+@keyframes cutPath {
+  0% { left: -34px; top: -18px; transform: rotate(-20deg); opacity: 1; }
+  40% { left: 100%; top: -18px; transform: rotate(15deg); opacity: 1; }
+  60% { left: 100%; top: 35%; transform: rotate(15deg); opacity: 1; }
+  100% { left: 100%; top: 110%; transform: rotate(40deg); opacity: 0; }
+}
+
+.contract.hung .contract-inner {
+  transform: scale(.94) rotate(-1.5deg);
+  box-shadow:
+    0 0 0 6px #c9a24b,
+    0 0 0 10px #8a5a1a,
+    0 22px 50px rgba(0, 0, 0, .4);
+}
+.contract.hung::before {
+  content: '';
+  position: absolute;
+  top: -24px;
+  left: 50%;
+  width: 2px;
+  height: 24px;
+  background: #8a5a1a;
+  transform: translateX(-50%);
+}
+.contract.hung::after {
+  content: '📌';
+  position: absolute;
+  top: -38px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 24px;
+}
+
+#wedding-decor {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+.wedding-emoji {
+  position: absolute;
+  bottom: -50px;
+  font-size: 30px;
+  animation: floatUp linear forwards;
+}
+@keyframes floatUp {
+  to { transform: translateY(-115vh) rotate(25deg); opacity: .15; }
+}
+
+body.wedding {
+  --bg1: #fff5f8;
+  --bg2: #ffd9e6;
+  --text: #6b2044;
+  background: linear-gradient(160deg, #fff5f8, #ffe4ee, #ffd6e7);
+}
+body.wedding .subtitle { opacity: 1; color: #a34d6e; }
+body.wedding .finale-title { color: #c2185b; }
 
 @media (max-width: 480px) {
-  .memory-grid { grid-template-columns: repeat(4, 1fr); gap: 8px; }
-  .memory-face { font-size: 24px; }
+  .sig { width: 140px; }
+  .sig-scribble { width: 110px; }
 }
