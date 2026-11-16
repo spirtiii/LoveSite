@@ -13,8 +13,11 @@
   document.addEventListener('click', (e) => {
     const btn = e.target.closest('[data-action]');
     if (!btn) return;
+    playSfx('pop');
     if (btn.dataset.action === 'next') {
+      if (current === 0) startBgMusic();
       showScreen(Math.min(current + 1, screens.length - 1));
+      if (screens[current].id === 'screen-level4') stopBgMusic();
       if (screens[current].id === 'screen-level1') startLevel1();
       if (screens[current].id === 'screen-level2') startLevel2();
       if (screens[current].id === 'screen-level3') startLevel3();
@@ -25,6 +28,110 @@
   });
 
   const rand = (min, max) => Math.random() * (max - min) + min;
+
+  // ---------- Аудио: звуки, фоновая музыка, марш ----------
+  let audioCtx = null;
+  let soundOn = true;
+  let bgMusicTimer = null;
+  let bgBar = 0;
+
+  function ensureAudio() {
+    if (!audioCtx) {
+      try {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      } catch (err) {
+        return null;
+      }
+    }
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    return audioCtx;
+  }
+
+  function tone(freq, dur, { type = 'sine', vol = 0.2, when = 0, slideTo = null } = {}) {
+    const ctx = ensureAudio();
+    if (!ctx || !soundOn) return;
+    const t = ctx.currentTime + when;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, t);
+    if (slideTo) osc.frequency.exponentialRampToValueAtTime(slideTo, t + dur);
+    gain.gain.setValueAtTime(0.0001, t);
+    gain.gain.exponentialRampToValueAtTime(vol, t + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    osc.connect(gain).connect(ctx.destination);
+    osc.start(t);
+    osc.stop(t + dur + 0.05);
+  }
+
+  function playSfx(name) {
+    if (!soundOn) return;
+    if (name === 'pop') tone(700, 0.12, { vol: 0.22, slideTo: 1050 });
+    if (name === 'good') { tone(880, 0.1, { vol: 0.18 }); tone(1320, 0.16, { vol: 0.18, when: 0.08 }); }
+    if (name === 'chime') [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => tone(f, 0.28, { vol: 0.16, when: i * 0.09 }));
+    if (name === 'fail') tone(220, 0.28, { type: 'sawtooth', vol: 0.1, slideTo: 140 });
+    if (name === 'sign') [392, 523.25, 659.25, 783.99].forEach((f, i) => tone(f, 0.3, { vol: 0.18, when: i * 0.12 }));
+  }
+
+  const bgChords = [
+    [261.63, 329.63, 392.0],
+    [220.0, 261.63, 329.63],
+    [174.61, 220.0, 261.63],
+    [196.0, 246.94, 293.66],
+  ];
+
+  function scheduleBar(chord, when) {
+    const ctx = audioCtx;
+    chord.forEach((f) => {
+      const t = ctx.currentTime + when;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.value = f;
+      gain.gain.setValueAtTime(0.0001, t);
+      gain.gain.linearRampToValueAtTime(0.03, t + 0.5);
+      gain.gain.linearRampToValueAtTime(0.0001, t + 1.9);
+      osc.connect(gain).connect(ctx.destination);
+      osc.start(t);
+      osc.stop(t + 2);
+    });
+    [0, 0.5, 1, 1.5].forEach((off, i) => {
+      tone(chord[i % chord.length] * 2, 0.3, { vol: 0.04, when: when + off });
+    });
+  }
+
+  function startBgMusic() {
+    const ctx = ensureAudio();
+    if (!ctx || bgMusicTimer) return;
+    scheduleBar(bgChords[0], 0.05);
+    bgBar = 1;
+    bgMusicTimer = setInterval(() => {
+      if (!soundOn) return;
+      scheduleBar(bgChords[bgBar % bgChords.length], 0.05);
+      bgBar++;
+    }, 2000);
+  }
+
+  function stopBgMusic() {
+    if (bgMusicTimer) {
+      clearInterval(bgMusicTimer);
+      bgMusicTimer = null;
+    }
+  }
+
+  const musicToggle = $('#music-toggle');
+  musicToggle.addEventListener('click', () => {
+    soundOn = !soundOn;
+    musicToggle.textContent = soundOn ? '🎵' : '🔇';
+    if (!soundOn) {
+      stopBgMusic();
+      if (marchAudio) marchAudio.pause();
+    } else if (current > 0 && current < 4) {
+      startBgMusic();
+    } else if (marchAudio && current === 5) {
+      marchAudio.play().catch(() => {});
+    }
+  });
 
   // ---------- Фоновые сердечки ----------
   const bg = $('#bg-hearts');
@@ -112,6 +219,7 @@
         if (el.classList.contains('pop')) return;
         el.classList.add('pop');
         setTimeout(() => el.remove(), 120);
+        playSfx('pop');
         score++;
         scoreEl.textContent = `❤️ ${score} / ${GOAL}`;
         if (score >= GOAL) {
@@ -153,6 +261,7 @@
         </div>`;
       card.addEventListener('click', () => {
         if (lock || card.classList.contains('flipped')) return;
+        playSfx('pop');
         card.classList.add('flipped');
         if (!first) { first = card; return; }
         const a = first, b = card;
@@ -161,7 +270,9 @@
           a.classList.add('done');
           b.classList.add('done');
           matched++;
+          playSfx('good');
           if (matched === faces.length) {
+            playSfx('chime');
             msg.textContent = 'Все пары найдены! У тебя отличная память 💕';
             msg.classList.remove('hidden');
             $('#screen-level2 .btn').classList.remove('hidden');
@@ -211,9 +322,11 @@
         el.classList.add('pop');
         setTimeout(() => el.remove(), 120);
         if (isGood) {
+          playSfx('good');
           score++;
           scoreEl.textContent = `💬 ${score} / ${GOAL}`;
           if (score >= GOAL) {
+            playSfx('chime');
             running = false;
             field.innerHTML = '';
             msg.textContent = 'Все комплименты твои! Потому что все они про тебя 💖';
@@ -221,6 +334,7 @@
             $('#screen-level3 .btn').classList.remove('hidden');
           }
         } else {
+          playSfx('fail');
           misses++;
           missEl.textContent = `Мимо: ${misses}/${MAX_MISS}`;
           if (misses >= MAX_MISS) {
@@ -302,6 +416,7 @@
     setTimeout(() => {
       $('#contract').classList.remove('hidden');
       startCounter();
+      if (!pad) pad = initSignaturePad();
       $('#contract').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }, 1400);
   });
@@ -310,19 +425,66 @@
   });
 
   let signed = false;
+  let pad = null;
+
+  function initSignaturePad() {
+    const canvas = $('#sig-canvas');
+    const ctx = canvas.getContext('2d');
+    const rect = canvas.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = Math.max(1, rect.width * dpr);
+    canvas.height = Math.max(1, rect.height * dpr);
+    ctx.scale(dpr, dpr);
+    ctx.lineWidth = 3;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.strokeStyle = '#7a1f4b';
+    let drawing = false;
+    let points = 0;
+
+    const pos = (e) => {
+      const r = canvas.getBoundingClientRect();
+      return [e.clientX - r.left, e.clientY - r.top];
+    };
+    canvas.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      drawing = true;
+      try { canvas.setPointerCapture(e.pointerId); } catch (err) {}
+      const [x, y] = pos(e);
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      points++;
+    });
+    canvas.addEventListener('pointermove', (e) => {
+      if (!drawing) return;
+      e.preventDefault();
+      const [x, y] = pos(e);
+      ctx.lineTo(x, y);
+      ctx.stroke();
+      points++;
+    });
+    addEventListener('pointerup', () => { drawing = false; });
+    $('#btn-clear-sig').addEventListener('click', () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      points = 0;
+      playSfx('pop');
+    });
+    return { isSigned: () => points > 25 };
+  }
+
   function signContract() {
     if (signed) return;
-    const input = $('#nika-signature');
     const hint = $('#sign-hint');
-    if (!input.value.trim()) {
-      hint.textContent = 'Сначала подпиши, пожалуйста 🖋';
+    if (!pad || !pad.isSigned()) {
+      hint.textContent = 'Нарисуй свою подпись пальцем по экрану ✍️';
       hint.classList.remove('hidden');
-      input.focus();
       return;
     }
     signed = true;
+    playSfx('sign');
     hint.classList.add('hidden');
-    input.disabled = true;
+    $('#sig-canvas').style.pointerEvents = 'none';
+    $('#btn-clear-sig').classList.add('hidden');
     $('#btn-sign').classList.add('hidden');
 
     const contract = $('#contract');
@@ -337,9 +499,6 @@
     }, 2400);
   }
   $('#btn-sign').addEventListener('click', signContract);
-  $('#nika-signature').addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') signContract();
-  });
 
   function startWedding() {
     document.body.classList.add('wedding');
@@ -361,36 +520,42 @@
     $('#btn-restart').classList.remove('hidden');
   }
 
-  let audioCtx = null;
+  let marchAudio = null;
   function playWeddingMarch() {
-    try {
-      audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
-      if (audioCtx.state === 'suspended') audioCtx.resume();
-      const freq = { C4: 261.63, D4: 293.66, E4: 329.63, F4: 349.23, G4: 392, A4: 440, C5: 523.25 };
-      const phrase = [
-        ['C4', .5], ['F4', .25], ['F4', .25], ['F4', .5],
-        ['F4', .25], ['E4', .25], ['F4', .25], ['G4', .25],
-        ['F4', 1], ['A4', .5], ['G4', .5], ['F4', .5], ['E4', 1],
-        ['C4', .5], ['F4', .25], ['F4', .25], ['F4', .5],
-        ['F4', .25], ['E4', .25], ['F4', .25], ['G4', .25],
-        ['F4', 1], ['A4', .5], ['G4', .5], ['F4', .5], ['C4', 1.5],
-      ];
-      let t = audioCtx.currentTime + 0.1;
-      for (const [note, dur] of phrase) {
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.type = 'triangle';
-        osc.frequency.value = freq[note];
-        gain.gain.setValueAtTime(0.0001, t);
-        gain.gain.exponentialRampToValueAtTime(0.25, t + 0.03);
-        gain.gain.exponentialRampToValueAtTime(0.0001, t + dur * 0.95);
-        osc.connect(gain).connect(audioCtx.destination);
-        osc.start(t);
-        osc.stop(t + dur);
-        t += dur;
-      }
-    } catch (err) {
-      return;
+    if (!marchAudio) {
+      marchAudio = new Audio('https://archive.org/download/MendelssohnWeddingMarch/Mendelssohn-wedding-march.mp3');
+      marchAudio.loop = true;
+      marchAudio.volume = 0.8;
+      marchAudio.addEventListener('error', playSynthMarch, { once: true });
+    }
+    marchAudio.play().catch(playSynthMarch);
+  }
+
+  function playSynthMarch() {
+    const ctx = ensureAudio();
+    if (!ctx || !soundOn) return;
+    const freq = { C4: 261.63, D4: 293.66, E4: 329.63, F4: 349.23, G4: 392, A4: 440, C5: 523.25 };
+    const phrase = [
+      ['C4', .5], ['F4', .25], ['F4', .25], ['F4', .5],
+      ['F4', .25], ['E4', .25], ['F4', .25], ['G4', .25],
+      ['F4', 1], ['A4', .5], ['G4', .5], ['F4', .5], ['E4', 1],
+      ['C4', .5], ['F4', .25], ['F4', .25], ['F4', .5],
+      ['F4', .25], ['E4', .25], ['F4', .25], ['G4', .25],
+      ['F4', 1], ['A4', .5], ['G4', .5], ['F4', .5], ['C4', 1.5],
+    ];
+    let t = ctx.currentTime + 0.1;
+    for (const [note, dur] of phrase) {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.value = freq[note];
+      gain.gain.setValueAtTime(0.0001, t);
+      gain.gain.exponentialRampToValueAtTime(0.25, t + 0.03);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + dur * 0.95);
+      osc.connect(gain).connect(ctx.destination);
+      osc.start(t);
+      osc.stop(t + dur);
+      t += dur;
     }
   }
 

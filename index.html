@@ -9,6 +9,7 @@
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
+<button id="music-toggle" class="music-toggle" aria-label="Выключить музыку">🎵</button>
 <canvas id="bg-hearts"></canvas>
 <canvas id="fireworks"></canvas>
 
@@ -113,9 +114,10 @@
             <div class="sig-label">подпись</div>
           </div>
           <div class="sig">
-            <input id="nika-signature" class="sig-input" maxlength="30" autocomplete="off" placeholder="...">
+            <canvas id="sig-canvas" class="sig-canvas" aria-label="Нарисуй подпись пальцем"></canvas>
             <div class="sig-line"></div>
             <div class="sig-label">подпись Ники</div>
+            <button class="btn-small" id="btn-clear-sig" type="button">Стереть ✍️</button>
           </div>
         </div>
         <button class="btn" id="btn-sign">Подписать 🖋</button>
